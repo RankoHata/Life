@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if g.user %}
+        <h5>Welcome, {{ g.user['account'] }}!</h5>
+        <div>
+            <a href="{{ url_for('main.exit_web') }}">Exit</a>
+            <a href="{{ url_for('auth.logout') }}">Log Out</a>
+            <a href="{{ url_for('auth.register') }}">Sign Up</a>
+        </div>
+        <div>
+            <a href="{{ url_for('auth.upload_file') }}">Upload file</a>
+        </div>
+    {% else %}
+        <h5>Welcome. (Not logged in.)</h5>
+        <div>
+            <a href="{{ url_for('main.exit_web') }}">Exit</a>
+            <a href="{{ url_for('auth.login') }}">Log In</a>
+            <a href="{{ url_for('auth.register') }}">Sign Up</a>
+        </div>
+    {% endif %}
+
+    <table border="1">
+    <tr>
+        <th>文件名</th>
+        <th>作者</th>
+        <th>上传时间</th>
+    </tr>
+    {% for file in files %}
+    <tr>
+        <td><a href="{{ url_for('main.show_file', file_name=file['new_file_name']) }}">{{ file['file_name'] }}</a></td>
+        <td>{{ file['account'] }}</td>
+        <td>{{ file['upload_time'] }}</td>
+        <td><a href="{{ url_for('main.downloader', file_name=file['new_file_name']) }}">下载</a></td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

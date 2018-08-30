@@ -1,0 +1,13 @@
+.upload
+upload/*
+
+.venv
+venv/*
+
+.idea
+
+__pycache__
+*.pyc
+
+*.sqlite3
+

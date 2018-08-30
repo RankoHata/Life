@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+<div>
+    <h5>登录</h5>
+    <form id="form1" method="post" action="/login">
+        <div>
+            <input id="account" type="text" name="account"/>
+            <input id="password" type="password" name="password"/>
+            <input type="submit"/>
+        </div>
+    </form>
+</div>
+{% endblock %}

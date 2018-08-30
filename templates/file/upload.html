@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+<div>
+    <form id="form1" method="post" action="/api/upload" enctype="multipart/form-data">
+    <div>
+        <input id="file1" type="file" name="upload"/>
+        <!-- name属性与后台代码相关 -->
+        <input type="submit"/>
+    </div>
+    </form>
+</div>
+{% endblock %}
