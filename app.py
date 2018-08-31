@@ -5,17 +5,21 @@ from config import *
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='', static_url_path='')  # static_url_path 默认前缀是 /static
+    # static_url_path='', 并不会将资源目录转为根目录，只是修改了映射，实际文件还是在static文件夹里
 
     app.config['SECRET_KEY'] = SECRET_KEY
     app.config['PASSWORD'] = PASSWORD
-    app.config['UPLOAD_FOLDER'] = os.path.join(basedir, UPLOAD_FOLDER)  # 后期分类型细化
-    app.config['DATABASE'] = os.path.join(basedir, sqlite3_db)
+    app.config['BASE_DIR'] = basedir
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  # 后期分类型细化
+    app.config['DATABASE'] = sqlite3_db
+    app.config['ABSOLUTE_UPLOAD_FOLDER'] = os.path.join(basedir, UPLOAD_FOLDER)
+    app.config['ABSOLUTE_DATABASE'] = os.path.join(basedir, sqlite3_db)
     app.config['SQL_SCRIPT'] = SQL_SCRIPT
     app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
 
-    if not os.path.exists(app.config['DATABASE']):
-        db = sqlite3.connect(app.config['DATABASE'])
+    if not os.path.exists(app.config['ABSOLUTE_DATABASE']):
+        db = sqlite3.connect(app.config['ABSOLUTE_DATABASE'])
         with open(app.config['SQL_SCRIPT'], 'rb') as f:
             db.executescript(f.read().decode('utf-8'))
         db.close()

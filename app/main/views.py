@@ -52,16 +52,16 @@ def homepage():
 @main.route('/file/<path:file_name>')
 @enter_required
 def show_file(file_name):
-    file_relative_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_name)
+    file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
     if file_name.endswith('txt'):
         try:
-            with open(file_relative_path, 'rt', encoding='utf-8') as f:
+            with open(file_absolute_path, 'rt', encoding='utf-8') as f:
                 return '<pre style="white-space: pre-wrap; font-family: sans-serif;">' + f.read() + '</pre>'
         except FileNotFoundError:
             pass
     elif file_name.endswith('jpg') or file_name.endswith('png'):
         try:
-            with open(file_relative_path, 'rb') as f:
+            with open(file_absolute_path, 'rb') as f:
                 image_data = f.read()
         except FileNotFoundError:
             abort(404)
@@ -72,31 +72,21 @@ def show_file(file_name):
             elif file_name.endswith('png'):
                 response.headers['Content-Type'] = 'image/png'
             return response
-    # elif file_name.endswith('jpg'):
-    #     try:
-    #         with open(file_relative_path, 'rb') as f:
-    #             pic_stream = base64.b64encode(f.read()).decode('ascii')
-    #     except FileNotFoundError:
-    #         pass
-    #     else:
-    #         return '<img src="data:image/jpg;base64,' + pic_stream + \
-    #                '" class="img-responsive img-rounded center-block" />'
-    # elif file_name.endswith('png'):
-    #     try:
-    #         with open(file_relative_path, 'rb') as f:
-    #             pic_stream = base64.b64encode(f.read()).decode('ascii')
-    #     except FileNotFoundError:
-    #         pass
-    #     else:
-    #         return '<img src="data:image/png;base64,' + pic_stream + \
-    #                '" class="img-responsive img-rounded center-block" />'
+    elif file_name.endswith('mp4'):
+        if os.path.exists(file_absolute_path):
+            file_relative_path = current_app.config['UPLOAD_FOLDER'] + '/' + file_name
+            # 这里不使用os.path.join()，web前端使用'/'作分隔符
+            print(file_relative_path)
+            return render_template('/file/video.html', file_path=file_relative_path)
+        else:
+            abort(404)
     abort(404)
 
 
 @main.route('/download/<path:file_name>')
 @enter_required
 def downloader(file_name):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], file_name, as_attachment=True)
+    return send_from_directory(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name, as_attachment=True)
 
 
 @main.route('/exit')

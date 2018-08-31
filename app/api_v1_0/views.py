@@ -29,7 +29,7 @@ def api_upload_file():
     uploaded_file = request.files['upload']  # 从表单的file字段获取文件，upload为表单的name值
     file_name = uploaded_file.filename
 
-    file_dir = current_app.config['UPLOAD_FOLDER']
+    file_dir = current_app.config['ABSOLUTE_UPLOAD_FOLDER']
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
 
