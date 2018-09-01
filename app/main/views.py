@@ -76,10 +76,13 @@ def show_file(file_name):
         if os.path.exists(file_absolute_path):
             file_relative_path = current_app.config['UPLOAD_FOLDER'] + '/' + file_name
             # 这里不使用os.path.join()，web前端使用'/'作分隔符
-            print(file_relative_path)
             return render_template('/file/video.html', file_path=file_relative_path)
         else:
             abort(404)
+    elif file_name.endswith('pdf'):
+        if os.path.exists(file_absolute_path):
+            file_relative_path = current_app.config['UPLOAD_FOLDER'] + '/' + file_name
+            return render_template('/file/pdf.html', file_path=file_relative_path)
     abort(404)
 
 

@@ -1,0 +1,4 @@
+{% extends "layout.html" %}
+{% block body %}
+    <embed src="{{ url_for("static", filename=file_path) }}" type="application/pdf" style="width: 100%; height: 100%;">
+{% endblock %}
