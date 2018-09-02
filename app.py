@@ -109,8 +109,9 @@ def create_app():
 #     return jsonify({'errno': 100, 'errmsg': 'Upload failed'})
 
 
+application = create_app()
+
 if __name__ == '__main__':
-    application = create_app()
     application.run(host='0.0.0.0', port=12999)
     # create_app().run(port=12999)
 
