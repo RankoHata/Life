@@ -1,11 +1,14 @@
 import os
+import re
 import time
-from flask import request, current_app, url_for, redirect, session, jsonify, g
+from flask import request, current_app, url_for, redirect, session, jsonify, g, abort
 
 from . import api
 from app.main.views import enter_required
 from app.auth.views import login_required
 from app.db import get_db
+
+# re_str = re.compile(r'(.+)_(\d+)_(.+)')
 
 
 @api.route('/verify', methods=['POST'])
@@ -50,3 +53,36 @@ def api_upload_file():
         db.commit()
         return jsonify({'errno': 0, 'errmsg': 'Successful upload'})
     return jsonify({'errno': 100, 'errmsg': 'Upload failed'})
+
+
+@api.route('/delete', methods=['GET'])
+@enter_required
+@login_required
+def api_delete_file():
+    account, upload_time, file_name = request.args['account'], request.args['upload_time'], request.args['file_name']
+    user_id, user_name = g.user['id'], g.user['account']
+    if user_name != account:
+        return jsonify({'errno': 101, 'errmsg': '验证信息不符'})
+        # 该用户想删除其他用户的文件
+    else:
+        new_file_name = account + '_' + upload_time + '_' + file_name
+        db = get_db()
+        db.execute(  # 不管文件存不存在都要删掉这条记录
+            'DELETE FROM file WHERE author_id = ? and upload_time = ? and file_name = ?',
+            (user_id, upload_time, file_name)
+        )
+        db.commit()
+        if db.total_changes == 1:
+            if os.path.exists(os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], new_file_name)):
+                try:
+                    os.remove(os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], new_file_name))
+                except OSError:
+                    return jsonify({'errno': 103, 'errmsg': '删除文件时出错'})
+                else:
+                    return jsonify({'errno': 0, 'errmsg': 'Successful delete'})
+            else:
+                return jsonify({'errno': 102, 'errmsg': '本地不存在文件'})
+        elif db.total_changes == 0:  # 数据库中没有数据
+            return jsonify({'errno': 104, 'errmsg': '文件信息错误'})
+        else:  # db.total_changes 不为1或0
+            return jsonify({'errno': 105, 'errmsg': '未知错误'})

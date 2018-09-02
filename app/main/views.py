@@ -33,7 +33,7 @@ def homepage():
     if g.certification is True:
         db = get_db()
         files_info = db.execute(
-            'SELECT file_name, account, upload_time FROM file INNER join '
+            'SELECT file_name, account, upload_time, author_id FROM file INNER join '
             'user ON file.author_id = user.id order by file.upload_time desc'
         ).fetchall()
         print(files_info)
@@ -41,7 +41,7 @@ def homepage():
         for file_info in files_info:
             file_info['new_file_name'] = file_info['account'] + '_' + str(file_info['upload_time'])\
                                          + '_' + file_info['file_name']
-            file_info['upload_time'] = datetime.datetime.fromtimestamp(  # 设定时区，默认中国
+            file_info['new_upload_time'] = datetime.datetime.fromtimestamp(  # 设定时区，默认中国
                 file_info['upload_time'], pytz.timezone('Asia/Shanghai')
             ).strftime('%Y-%m-%d %H:%M:%S')
         return render_template('base.html', files=files_info)
@@ -52,6 +52,12 @@ def homepage():
 @main.route('/file/<path:file_name>')
 @enter_required
 def show_file(file_name):
+    """
+    没有数据库验证，拥有很危险的bug，可以通过给予特定路径，访问服务器上的任何文件,downlaoader也是
+    为保证安全问题，改成三参数形式，既可以避免切割实际文件名产生的bug，又可以防止访问其他文件夹。
+    :param file_name:
+    :return:
+    """
     file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
     if file_name.endswith('txt'):
         try:
