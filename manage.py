@@ -5,7 +5,8 @@ from config import *
 
 
 def create_app():
-    app = Flask(__name__, static_folder='', static_url_path='')  # static_url_path 默认前缀是 /static
+    app = Flask(__name__)
+    # app = Flask(__name__, static_folder='', static_url_path='')  # static_url_path 默认前缀是 /static
     # static_url_path='', 并不会将资源目录转为根目录，只是修改了映射，实际文件还是在static文件夹里
 
     app.config['SECRET_KEY'] = SECRET_KEY
