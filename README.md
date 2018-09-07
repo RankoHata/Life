@@ -26,13 +26,21 @@ User html5 video tag and source tag.
 
 #### 2018-9-1
 
-#### Support Pdf File
+##### Support Pdf File
 
 Support uploading, downloading and browsing pdf file online.
 User html5 embed tag.
 
 #### 2018-9-2
-
-#### Support Deletion
+拼接url
+##### Support Deletion
 
 The author of file can delete its own file.
+
+#### 2018-9-7
+
+##### Fix Access vulnerability
+
+Fix a bug about accessing vulnerability.
+
+Prevent users access without permission.
