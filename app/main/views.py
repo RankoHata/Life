@@ -96,8 +96,7 @@ def show_file(file_id):
                     return render_template('/file/pdf.html', file_path=file_relative_path)
         else:
             abort(404)  # 本地没这个文件
-    else:
-        abort(404)  # 参数错误，数据库里没这项
+    abort(404)
 
 
 @main.route('/download/<int:file_id>')
