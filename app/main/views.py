@@ -2,6 +2,7 @@ import os
 import pytz
 import base64
 import datetime
+import time
 from flask import current_app, render_template, redirect, url_for, g, session, abort, \
     flash, send_from_directory, make_response, request, send_file
 from functools import wraps
@@ -61,6 +62,14 @@ def show_file(file_id):
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
     ).fetchone()
     if file_info is not None:
+        print(dict(file_info))
+        if g.user is not None:
+            db.execute(
+                'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
+                (current_app.config['SIGN_CODE']['BROWSE'], g.user['id'], file_info['id'], int(time.time()))
+            )
+            db.commit()
+
         file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         if os.path.exists(file_absolute_path):
@@ -107,6 +116,12 @@ def downloader(file_id):
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
     ).fetchone()
     if file_info is not None:
+        if g.user is not None:
+            db.execute(
+                'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
+                (current_app.config['SIGN_CODE']['DOWNLOAD'], g.user['id'], file_info['id'], int(time.time()))
+            )
+            db.commit()
         file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         if os.path.exists(file_absolute_path):

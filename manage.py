@@ -19,6 +19,11 @@ def create_app():
     app.config['SQL_SCRIPT'] = SQL_SCRIPT
     app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
 
+    app.config['SIGN_CODE'] = {
+        'BROWSE': BROWSE_SIGN_CODE,
+        'DOWNLOAD': DOWNLOAD_SIGN_CODE,
+    }
+
     if not os.path.exists(app.config['ABSOLUTE_DATABASE']):
         db = sqlite3.connect(app.config['ABSOLUTE_DATABASE'])
         with open(app.config['SQL_SCRIPT'], 'rb') as f:
