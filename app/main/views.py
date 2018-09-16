@@ -62,7 +62,6 @@ def show_file(file_id):
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
     ).fetchone()
     if file_info is not None:
-        print(dict(file_info))
         if g.user is not None:
             db.execute(
                 'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
