@@ -53,7 +53,7 @@ def homepage():
 @enter_required
 def show_file(file_id):
     """
-    没有数据库验证，拥有很危险的bug，可以通过给予特定路径，访问服务器上的任何文件,downlaoader也是
+    没有数据库验证，拥有很危险的bug，可以通过给予特定路径，访问服务器上的任何文件,downloader也是
     为保证安全问题，改成三参数形式，既可以避免切割实际文件名产生的bug，又可以防止访问其他文件夹。
     :return:
     """
