@@ -52,11 +52,6 @@ def homepage():
 @main.route('/file/<int:file_id>')
 @enter_required
 def show_file(file_id):
-    """
-    没有数据库验证，拥有很危险的bug，可以通过给予特定路径，访问服务器上的任何文件,downloader也是
-    为保证安全问题，改成三参数形式，既可以避免切割实际文件名产生的bug，又可以防止访问其他文件夹。
-    :return:
-    """
     db = get_db()
     file_info = db.execute(  # 两个表都有id这一列，不知道内部机制。
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
@@ -71,39 +66,30 @@ def show_file(file_id):
 
         file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
-        if os.path.exists(file_absolute_path):
-            if file_name.endswith('txt'):
-                try:
-                    with open(file_absolute_path, 'rt', encoding='utf-8') as f:
-                        return '<pre style="white-space: pre-wrap; font-family: sans-serif;">' + f.read() + '</pre>'
-                except FileNotFoundError:
-                    pass
-            elif file_name.endswith('jpg') or file_name.endswith('png'):
-                try:
-                    with open(file_absolute_path, 'rb') as f:
-                        image_data = f.read()
-                except FileNotFoundError:
-                    abort(404)
-                else:
-                    response = make_response(image_data)
-                    if file_name.endswith('jpg'):
-                        response.headers['Content-Type'] = 'image/jpg'
-                    elif file_name.endswith('png'):
-                        response.headers['Content-Type'] = 'image/png'
-                    return response
-            elif file_name.endswith('mp4'):
-                if os.path.exists(file_absolute_path):
-                    file_relative_path = current_app.config['UPLOAD_FOLDER'] + '/' + file_name
-                    # 这里不使用os.path.join()，web前端使用'/'作分隔符
-                    return render_template('/file/video.html', file_path=file_relative_path)
-                else:
-                    abort(404)
-            elif file_name.endswith('pdf'):
-                if os.path.exists(file_absolute_path):
-                    file_relative_path = current_app.config['UPLOAD_FOLDER'] + '/' + file_name
-                    return render_template('/file/pdf.html', file_path=file_relative_path)
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        try:
+            file_type = file_name.split('.')[-1]
+        except IndexError:
+            return '<p>不支持的文件类型</p>'
         else:
-            abort(404)  # 本地没这个文件
+            if os.path.exists(file_absolute_path):
+                if file_type in {'txt'}:
+                    fo = TextFile(file_name, file_absolute_path, upload_folder, file_type)
+                    html_tag = fo.html_tag()
+                    if html_tag is not None:
+                        return html_tag
+                elif file_type in {'jpg', 'png'}:
+                    fo = ImageFile(file_name, file_absolute_path, upload_folder, file_type)
+                    try:
+                        return fo.make_response()
+                    except ResponseError:
+                        abort(404)
+                elif file_type in {'mp4'}:
+                    fo = VideoFile(file_name, file_absolute_path, upload_folder, file_type)
+                    return render_template('/file/video.html', file_path=fo.relative_path)
+                elif file_type in {'pdf'}:
+                    fo = PdfFile(file_name, file_absolute_path, upload_folder, file_type)
+                    return render_template('/file/pdf.html', file_path=fo.relative_path)
     abort(404)
 
 
@@ -145,3 +131,85 @@ def exit_web():
     session.clear()
     flash('You have successfully exited.')
     return redirect(url_for('main.homepage'))
+
+
+class ResponseError(Exception):
+    pass
+
+
+class File:
+    def __init__(self, file_name, file_absolute_path, upload_folder):
+        self.file_name = file_name
+        self.absolute_path = file_absolute_path
+        self.upload_folder = upload_folder
+        self.relative_path = os.path.join(self.upload_folder, self.file_name)
+
+    def __str__(self):
+        return self.absolute_path
+
+    @property
+    def file_content(self):
+        try:
+            with open(self.absolute_path, 'rb') as f:
+                data = f.read()
+            return data
+        except FileNotFoundError:
+            return None
+
+    def make_response(self):
+        if self.file_content is not None:
+            response = make_response(self.file_content)
+            return response
+        raise ResponseError
+
+
+class ImageFile(File):
+    def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
+        super(ImageFile, self).__init__(file_name, file_absolute_path, upload_folder)
+        self.file_type = file_type
+
+    def html_tag(self):
+        return None
+
+    def make_response(self):
+        try:
+            response = super(ImageFile, self).make_response()
+        except ResponseError:
+            raise
+        else:
+            if self.file_type == 'jpg':
+                response.headers['Content-Type'] = 'image/jpg'
+            elif self.file_type == 'png':
+                response.headers['Content-Type'] = 'image/png'
+            return response
+
+
+class TextFile(File):
+    def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
+        super(TextFile, self).__init__(file_name, file_absolute_path, upload_folder)
+        self.file_type = file_type
+        self.html_model = '<pre style="white-space: pre-wrap; font-family: sans-serif;">{content}</pre>'
+
+    def html_tag(self):
+        if self.file_type == 'txt':
+            try:
+                with open(self.absolute_path, 'rt', encoding='utf-8') as f:
+                    return self.html_model.format(content=f.read())
+            except FileNotFoundError:
+                return None
+            except:  # Should have log file.
+                return None
+        else:
+            return None
+
+
+class VideoFile(File):
+    def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
+        super(VideoFile, self).__init__(file_name, file_absolute_path, upload_folder)
+        self.file_type = file_type
+
+
+class PdfFile(File):
+    def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
+        super(PdfFile, self).__init__(file_name, file_absolute_path, upload_folder)
+        self.file_type = file_type
