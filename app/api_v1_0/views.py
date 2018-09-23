@@ -1,7 +1,7 @@
 import os
 import re
 import time
-from flask import request, current_app, url_for, redirect, session, jsonify, g, abort
+from flask import request, current_app, url_for, redirect, session, jsonify, g, abort, flash
 
 from . import api
 from app.main.views import enter_required
@@ -51,8 +51,12 @@ def api_upload_file():
             (user_id, unix_time, file_name)
         )
         db.commit()
-        return jsonify({'errno': 0, 'errmsg': 'Successful upload'})
-    return jsonify({'errno': 100, 'errmsg': 'Upload failed'})
+        flash('Successful upload.')
+        return redirect(url_for('main.homepage'))
+        # return jsonify({'errno': 0, 'errmsg': 'Successful upload'})
+    flash('Upload failed.')
+    return redirect(url_for('main.homepage'))
+    # return jsonify({'errno': 100, 'errmsg': 'Upload failed'})
 
 
 @api.route('/delete', methods=['GET'])
@@ -77,12 +81,22 @@ def api_delete_file():
                 try:
                     os.remove(os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], new_file_name))
                 except OSError:
-                    return jsonify({'errno': 103, 'errmsg': '删除文件时出错'})
+                    flash('删除文件时出错')
+                    return redirect(url_for('main.homepage'))
+                    # return jsonify({'errno': 103, 'errmsg': '删除文件时出错'})
                 else:
-                    return jsonify({'errno': 0, 'errmsg': 'Successful delete'})
+                    flash('Successful delete')
+                    return redirect(url_for('main.homepage'))
+                    # return jsonify({'errno': 0, 'errmsg': 'Successful delete'})
             else:
-                return jsonify({'errno': 102, 'errmsg': '本地不存在文件'})
+                flash('本地不存在文件')
+                return redirect(url_for('main.homepage'))
+                # return jsonify({'errno': 102, 'errmsg': '本地不存在文件'})
         elif db.total_changes == 0:  # 数据库中没有数据
-            return jsonify({'errno': 104, 'errmsg': '文件信息错误'})
+            flash('文件信息错误')
+            return redirect(url_for('main.homepage'))
+            # return jsonify({'errno': 104, 'errmsg': '文件信息错误'})
         else:  # db.total_changes 不为1或0
-            return jsonify({'errno': 105, 'errmsg': '未知错误'})
+            flash('未知错误')
+            return redirect(url_for('main.homepage'))
+            # return jsonify({'errno': 105, 'errmsg': '未知错误'})
