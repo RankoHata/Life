@@ -49,5 +49,5 @@ application = create_app()
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', port=12999)
-    # create_app().run(port=12999)
+    # application.run(port=12999)
 

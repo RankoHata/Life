@@ -37,10 +37,10 @@ def homepage():
             'SELECT * FROM file INNER join '
             'user ON file.author_id = user.id order by file.upload_time desc'
         ).fetchall()
-        files_info = [dict(item) for item in files_info]
+        files_info = tuple(dict(item) for item in files_info)
         for file_info in files_info:
-            file_info['new_file_name'] = file_info['account'] + '_' + str(file_info['upload_time'])\
-                                         + '_' + file_info['file_name']
+            file_info['new_file_name'] = str(file_info['account']) + '_' + str(file_info['upload_time'])\
+                                         + '_' + str(file_info['file_name'])
             file_info['new_upload_time'] = datetime.datetime.fromtimestamp(  # 设定时区，默认中国
                 file_info['upload_time'], pytz.timezone('Asia/Shanghai')
             ).strftime('%Y-%m-%d %H:%M:%S')
@@ -57,7 +57,8 @@ def show_file(file_id):
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
     ).fetchone()
     if file_info is not None:
-        if g.user is not None:
+    
+        if g.user is not None:  # Add records about user.
             db.execute(
                 'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
                 (current_app.config['SIGN_CODE']['BROWSE'], g.user['id'], file_info['id'], int(time.time()))
@@ -67,30 +68,38 @@ def show_file(file_id):
         file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         upload_folder = current_app.config['UPLOAD_FOLDER']
-        try:
-            file_type = file_name.split('.')[-1]
-        except IndexError:
-            return '<p>不支持的文件类型</p>'
-        else:
-            if os.path.exists(file_absolute_path):
-                if file_type in {'txt'}:
+
+        if os.path.exists(file_absolute_path):
+            try:
+                file_type = file_name.split('.')[-1]
+            except IndexError:
+                return '<p>不支持的文件类型</p>'
+            else:
+                if file_type in FileClassification.text_type:
                     fo = TextFile(file_name, file_absolute_path, upload_folder, file_type)
                     html_tag = fo.html_tag()
                     if html_tag is not None:
                         return html_tag
-                elif file_type in {'jpg', 'png'}:
+                elif file_type in FileClassification.image_type:
                     fo = ImageFile(file_name, file_absolute_path, upload_folder, file_type)
                     try:
                         return fo.make_response()
                     except ResponseError:
                         abort(404)
-                elif file_type in {'mp4'}:
+                elif file_type in FileClassification.video_type:
                     fo = VideoFile(file_name, file_absolute_path, upload_folder, file_type)
                     return render_template('/file/video.html', file_path=fo.relative_path)
-                elif file_type in {'pdf'}:
+                elif file_type in FileClassification.pdf_type:
                     fo = PdfFile(file_name, file_absolute_path, upload_folder, file_type)
                     return render_template('/file/pdf.html', file_path=fo.relative_path)
     abort(404)
+
+
+class FileClassification:
+    text_type = {'txt'}
+    image_type = {'jpg', 'png'}
+    video_type = {'mp4'}
+    pdf_type = {'pdf'}  # 并不对等，pdf文件应该是更下一层的，这里的设计完全不合理。
 
 
 @main.route('/download/<int:file_id>')
@@ -107,7 +116,7 @@ def downloader(file_id):
                 (current_app.config['SIGN_CODE']['DOWNLOAD'], g.user['id'], file_info['id'], int(time.time()))
             )
             db.commit()
-        file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
+        file_name = str(file_info['account']) + '_' + str(file_info['upload_time']) + '_' + str(file_info['file_name'])
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         if os.path.exists(file_absolute_path):
             return send_from_directory(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name, as_attachment=True)
