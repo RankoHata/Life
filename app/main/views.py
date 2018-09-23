@@ -92,6 +92,9 @@ def show_file(file_id):
                 elif file_type in FileClassification.pdf_type:
                     fo = PdfFile(file_name, file_absolute_path, upload_folder, file_type)
                     return render_template('/file/pdf.html', file_path=fo.relative_path)
+                elif file_type in FileClassification.audio_type:
+                    fo = AudioFile(file_name, file_absolute_path, upload_folder, file_type)
+                    return render_template('/file/audio.html', file_path=fo.relative_path)
     abort(404)
 
 
@@ -100,6 +103,7 @@ class FileClassification:
     image_type = {'jpg', 'png'}
     video_type = {'mp4'}
     pdf_type = {'pdf'}  # 并不对等，pdf文件应该是更下一层的，这里的设计完全不合理。
+    audio_type = {'mp3', 'wav'}
 
 
 @main.route('/download/<int:file_id>')
@@ -221,4 +225,10 @@ class VideoFile(File):
 class PdfFile(File):
     def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
         super(PdfFile, self).__init__(file_name, file_absolute_path, upload_folder)
+        self.file_type = file_type
+
+
+class AudioFile(File):
+    def __init__(self, file_name, file_absolute_path, upload_folder, file_type):
+        super(AudioFile, self).__init__(file_name, file_absolute_path, upload_folder)
         self.file_type = file_type
