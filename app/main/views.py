@@ -114,7 +114,7 @@ def downloader(file_id):
         'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
     ).fetchone()
     if file_info is not None:
-        if g.user is not None:
+        if g.user is not None:  # Note: 这里只能统计到通过该url下载的记录，其他途径记录不到!!!
             db.execute(
                 'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
                 (current_app.config['SIGN_CODE']['DOWNLOAD'], g.user['id'], file_info['id'], int(time.time()))

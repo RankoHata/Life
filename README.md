@@ -22,7 +22,7 @@ Just so you know.
 ##### Support Video (mp4)
 
 Support uploading, downloading and playing MP4 videos online.
-User html5 video tag and source tag.
+Use html5 video tag and source tag.
 
 #### 2018-9-1
 
@@ -47,4 +47,12 @@ Prevent users access without permission.
 
 #### 2018-9-23
 
-##### 
+##### Support Auido
+
+Support uploading, downloading and playing audio file(mp3) online.
+
+#### 2018-9-26
+
+##### View History
+
+Add a feature that view history.
