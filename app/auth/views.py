@@ -1,8 +1,10 @@
 from functools import wraps
-from flask import flash, g, render_template, request, session, url_for, redirect
+from datetime import datetime
+import pytz
+from flask import flash, g, render_template, request, session, url_for, redirect, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.db import get_db
+from app.db import get_db, Sqlite3Query
 from app.main.views import enter_required
 from . import auth
 
@@ -94,3 +96,19 @@ def register():
 @login_required
 def upload_file():
     return render_template('file/upload.html')
+
+
+@auth.route('/history')
+@enter_required
+@login_required
+def display_history():
+    records_info = Sqlite3Query.get_records_info(g.user['id'])
+    for record in records_info:
+        record['time'] = datetime.fromtimestamp(
+            record['time'], pytz.timezone('Asia/Shanghai')
+        ).strftime("%Y-%m-%d %H:%M:%S")
+    return render_template(
+        'history.html', 
+        records_info=records_info, 
+        sign=current_app.config['SIGN_CODE']
+    )

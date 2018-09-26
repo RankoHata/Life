@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+<table border="1">
+    <caption>浏览记录</caption>
+    <tr>
+        <th>文件名</th>
+        <th>时间</th>
+    </tr>
+    {% for record in records_info %}
+        {% if record['type_id'] == sign['BROWSE'] %}
+        <tr>
+            <td><a href="{{ url_for('main.show_file', file_id=record['file_id']) }}">{{ record['file_name'] }}</a></td>
+            <td>{{ record['time'] }}</td>
+            <td><a href="{{ url_for('main.downloader', file_id=record['file_id']) }}">下载</a></td>
+        </tr>
+        {% endif %}
+    {% endfor %}  
+    </table>
+<table border="1">
+    <caption>下载记录</caption>
+    <tr>
+        <th>文件名</th>
+        <th>时间</th>
+    </tr>
+    {% for record in records_info %}
+        {% if record['type_id'] == sign['DOWNLOAD'] %}
+        <tr>
+            <td><a href="{{ url_for('main.show_file', file_id=record['file_id']) }}">{{ record['file_name'] }}</a></td>
+            <td>{{ record['time'] }}</td>
+            <td><a href="{{ url_for('main.downloader', file_id=record['file_id']) }}">下载</a></td>
+        </tr>
+        {% endif %}
+    {% endfor %}  
+    </table>
+{% endblock %}
