@@ -8,7 +8,8 @@ from flask import current_app, render_template, redirect, url_for, g, session, a
 from functools import wraps
 
 from . import main
-from app.db import get_db
+from app.db import get_db, Sqlite3Query
+from app.func import convert_time
 
 
 def enter_required(view_func):
@@ -32,18 +33,10 @@ def check():
 @main.route('/')
 def homepage():
     if g.certification is True:
-        db = get_db()
-        files_info = db.execute(
-            'SELECT * FROM file INNER join '
-            'user ON file.author_id = user.id order by file.upload_time desc'
-        ).fetchall()
-        files_info = tuple(dict(item) for item in files_info)
+        files_info = Sqlite3Query.get_all_combined_files_info()
         for file_info in files_info:
-            file_info['new_file_name'] = str(file_info['account']) + '_' + str(file_info['upload_time'])\
-                                         + '_' + str(file_info['file_name'])
-            file_info['new_upload_time'] = datetime.datetime.fromtimestamp(  # 设定时区，默认中国
-                file_info['upload_time'], pytz.timezone('Asia/Shanghai')
-            ).strftime('%Y-%m-%d %H:%M:%S')
+            file_info['new_upload_time'] = convert_time(file_info['upload_time'])
+            # 并没有覆盖原来的upload_time字段。
         return render_template('base.html', files=files_info)
     else:
         return render_template('start.html')
@@ -52,20 +45,17 @@ def homepage():
 @main.route('/file/<int:file_id>')
 @enter_required
 def show_file(file_id):
-    db = get_db()
-    file_info = db.execute(  # 两个表都有id这一列，不知道内部机制。
-        'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
-    ).fetchone()
+    file_info = Sqlite3Query.get_file_info(file_id)
     if file_info is not None:
-    
-        if g.user is not None:  # Add records about user.
+        if g.user is not None:  # Add records about user.  未来将以装饰器实现
+            db = get_db()
             db.execute(
                 'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
                 (current_app.config['SIGN_CODE']['BROWSE'], g.user['id'], file_info['id'], int(time.time()))
             )
             db.commit()
 
-        file_name = file_info['account'] + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
+        file_name = str(file_info['author_id']) + '_' + str(file_info['upload_time']) + '_' + file_info['file_name']
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         upload_folder = current_app.config['UPLOAD_FOLDER']
 
@@ -106,21 +96,19 @@ class FileClassification:
     audio_type = {'mp3', 'wav'}
 
 
-@main.route('/download/<int:file_id>')
+@main.route('/download/<int:file_id>')  # 与show_file view func 重复度太高...
 @enter_required
 def downloader(file_id):
-    db = get_db()
-    file_info = db.execute(  # 两个表都有id这一列，不知道内部机制。
-        'SELECT * FROM file INNER JOIN user WHERE file.id = ? and user.id = file.author_id', (file_id,)
-    ).fetchone()
+    file_info = Sqlite3Query.get_file_info(file_id)
     if file_info is not None:
         if g.user is not None:  # Note: 这里只能统计到通过该url下载的记录，其他途径记录不到!!!
+            db = get_db()
             db.execute(
                 'INSERT INTO records (type_id, user_id, file_id, time) VALUES (?, ?, ?, ?)',
                 (current_app.config['SIGN_CODE']['DOWNLOAD'], g.user['id'], file_info['id'], int(time.time()))
             )
             db.commit()
-        file_name = str(file_info['account']) + '_' + str(file_info['upload_time']) + '_' + str(file_info['file_name'])
+        file_name = str(file_info['author_id']) + '_' + str(file_info['upload_time']) + '_' + str(file_info['file_name'])
         file_absolute_path = os.path.join(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name)
         if os.path.exists(file_absolute_path):
             return send_from_directory(current_app.config['ABSOLUTE_UPLOAD_FOLDER'], file_name, as_attachment=True)
@@ -150,7 +138,7 @@ class ResponseError(Exception):
     pass
 
 
-class File:
+class File:  # 未来修改该类，使能够直接使用数据库取出的数据，进行构建
     def __init__(self, file_name, file_absolute_path, upload_folder):
         self.file_name = file_name
         self.absolute_path = file_absolute_path

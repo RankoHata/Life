@@ -7,6 +7,7 @@ sqlite3_db = 'DMYX.sqlite3'
 UPLOAD_FOLDER = 'upload'
 ALLOWED_EXTENSIONS = {'txt', 'png', 'jpg', 'mp3', 'mp4', 'pdf', '7z', 'rar'}
 SECRET_KEY = os.urandom(24)
+TIMEZONE = 'Asia/Shanghai'
 
 try:
     PASSWORD = os.environ['Life_password']

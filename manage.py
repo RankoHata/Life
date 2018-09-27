@@ -18,6 +18,7 @@ def create_app():
     app.config['ABSOLUTE_DATABASE'] = os.path.join(basedir, sqlite3_db)
     app.config['SQL_SCRIPT'] = SQL_SCRIPT
     app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
+    app.config['TIMEZONE'] = TIMEZONE
 
     app.config['SIGN_CODE'] = {
         'BROWSE': BROWSE_SIGN_CODE,
