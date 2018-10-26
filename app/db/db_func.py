@@ -19,10 +19,10 @@ class Sqlite3Query:
         records_info = tuple(dict(item) for item in records_info)
         return records_info
 
-    def get_all_combined_files_info():
+    def get_all_file_info():
         sql_statement = '''
-        select * from file inner join 
-        user on file.author_id = user.id 
+        select file.id, author_id, upload_time, file_name, account 
+        from file inner join user on file.author_id = user.id 
         order by file.upload_time desc
         '''
         db = get_db()

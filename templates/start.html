@@ -1,12 +1,9 @@
 {% extends "layout.html" %}
+{% block head %}
+<script src="{{ url_for('static', filename='js/access_verification.js') }}"></script>
+{% endblock %}
 {% block body %}
 <div>
     <h3>DMYX Community</h3>
-    <form id="form1" method="post" action="/api/verify" enctype="multipart/form-data">
-        <div>
-            <input id="password" type="password" name="password"/>
-            <input type="submit"/>
-        </div>
-    </form>
 </div>
 {% endblock %}

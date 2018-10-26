@@ -56,3 +56,10 @@ Support uploading, downloading and playing audio file(mp3) online.
 ##### View History
 
 Add a feature that view history.
+
+#### 2018-10-26
+
+##### Add js and other small files
+
+Separate js code and html code.
+And modify implementation of start page.

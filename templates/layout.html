@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>DMYX Community</title>
+    <script src="{{ url_for('static', filename='js/jquery-3.3.1.min.js') }}"></script>
+    {% block head %}
+    {% endblock %}
 </head>
-<body style="height: 100%; background-image: url({{ url_for('static', filename='background.jpg') }});
-         background-repeat:no-repeat; background-attachment:fixed; background-size:cover">
+<body style="
+    height: 100%; 
+    background-image: url({{ url_for('static', filename='background.jpg') }});
+    background-repeat:no-repeat; 
+    background-attachment:fixed; 
+    background-size:cover">
 {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class="flashes">

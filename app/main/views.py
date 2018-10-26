@@ -33,11 +33,9 @@ def check():
 @main.route('/')
 def homepage():
     if g.certification is True:
-        files_info = Sqlite3Query.get_all_combined_files_info()
-        for file_info in files_info:
-            file_info['new_upload_time'] = convert_time(file_info['upload_time'])
-            # 并没有覆盖原来的upload_time字段。
-        return render_template('base.html', files=files_info)
+        file_info = Sqlite3Query.get_all_file_info()
+        print(file_info)
+        return render_template('base.html', files=file_info)
     else:
         return render_template('start.html')
 

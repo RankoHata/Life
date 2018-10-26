@@ -16,7 +16,9 @@ def api_verify_password():
     password = request.form['password']
     if password == current_app.config['PASSWORD']:
         session['certification'] = True
-    return redirect(url_for('main.homepage'))
+        return jsonify({'Accessible': True})
+    else:
+        return jsonify({'Accessible': False})
 
 
 def allowed_file(filename):

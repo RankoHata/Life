@@ -1,4 +1,7 @@
 {% extends "layout.html" %}
+{% block head %}
+<script src="{{ url_for('static', filename='js/file_operation.js') }}"></script>
+{% endblock %}
 {% block body %}
     {% if g.user %}
         <h5>Welcome, {{ g.user['account'] }}!</h5>
@@ -22,15 +25,17 @@
 
     <table border="1">
     <tr>
-        <th>文件名</th>
-        <th>作者</th>
-        <th>上传时间</th>
+        <th></th>
+        <th>File Name</th>
+        <th>Uploader</th>
+        <th>Upload Time</th>
     </tr>
     {% for file in files %}
     <tr>
-        <td><a href="{{ url_for('main.show_file', file_id=file['id']) }}">{{ file['file_name'] }}</a></td>
-        <td>{{ file['account'] }}</td>
-        <td>{{ file['new_upload_time'] }}</td>
+        <td><input type="checkbox"></td>
+        <td class="file_info" file_id="{{ file['id'] }}"><a href="{{ url_for('main.show_file', file_id=file['id']) }}">{{ file['file_name'] }}</a></td>
+        <td class="uploader" uploader_id="{{ file['author_id'] }}">{{ file['account'] }}</td>
+        <td class="upload_time" upload_time="{{ file['upload_time'] }}">{{ file['upload_time'] }}</td>
         <td><a href="{{ url_for('main.downloader', file_id=file['id']) }}">下载</a></td>
         {% if g.user['id'] == file['author_id'] %}  {# Note: 当g.user本身为None时，并不会报错 #}
             <td><a href="{{ url_for('api.api_delete_file', account=file['account'], upload_time=file['upload_time'], file_name=file['file_name']) }}">删除</a></td>
