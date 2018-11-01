@@ -43,7 +43,7 @@ def api_upload_file():
         unix_time = int(time.time())
         user_name = g.user['account']
         user_id = g.user['id']
-        new_file_name = user_id + '_' + str(unix_time) + '_' + file_name  # 新的文件名，加上时间
+        new_file_name = str(user_id) + '_' + str(unix_time) + '_' + file_name  # 新的文件名，加上时间
 
         uploaded_file.save(os.path.join(file_dir, new_file_name))
 
