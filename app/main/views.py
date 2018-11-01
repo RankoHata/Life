@@ -34,7 +34,6 @@ def check():
 def homepage():
     if g.certification is True:
         file_info = Sqlite3Query.get_all_file_info()
-        print(file_info)
         return render_template('base.html', files=file_info)
     else:
         return render_template('start.html')
