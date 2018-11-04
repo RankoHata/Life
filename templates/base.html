@@ -31,16 +31,19 @@
         <th>Upload Time</th>
     </tr>
     {% for file in files %}
-    <tr>
-        <td><input type="checkbox"></td>
-        <td class="file_info" file_id="{{ file['id'] }}"><a href="{{ url_for('main.show_file', file_id=file['id']) }}">{{ file['file_name'] }}</a></td>
+    <tr class="file_info" file_id="{{ file['id'] }}" uploader_id="{{ file['author_id'] }}" upload_time="{{ file['upload_time'] }}">
+        <td><input type="checkbox" class="file_checkbox" file_id="{{ file['id']  }}"/></td>
+        <td class="file_name" file_id="{{ file['id'] }}"><a href="{{ url_for('main.show_file', file_id=file['id']) }}">{{ file['file_name'] }}</a></td>
         <td class="uploader" uploader_id="{{ file['author_id'] }}">{{ file['account'] }}</td>
         <td class="upload_time" upload_time="{{ file['upload_time'] }}">{{ file['upload_time'] }}</td>
         <td><a href="{{ url_for('main.downloader', file_id=file['id']) }}">下载</a></td>
-        {% if g.user['id'] == file['author_id'] %}  {# Note: 当g.user本身为None时，并不会报错 #}
+        <!-- {% if g.user['id'] == file['author_id'] %}  {# Note: 当g.user本身为None时，并不会报错 #}
             <td><a href="{{ url_for('api.api_delete_file', account=file['account'], upload_time=file['upload_time'], file_name=file['file_name']) }}">删除</a></td>
-        {% endif %}
+        {% endif %} -->
     </tr>
     {% endfor %}
     </table>
+    {% if g.user %}
+    <button type="button" onclick="delete_files()">删除</button>
+    {% endif %}
 {% endblock %}
